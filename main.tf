@@ -1,5 +1,23 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 6.0"
+    }
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 4.0"
+    }
+    local = {
+      source  = "hashicorp/local"
+      version = "~> 2.0"
+    }
+  }
+}
+
+
 provider "aws" {
-  region = "eu-west-3"
+  region = var.region
 }
 
 # Récupère automatiquement la dernière image Ubuntu
@@ -15,11 +33,14 @@ data "aws_ami" "ubuntu" {
 
 # Crée une instance EC2
 resource "aws_instance" "server" {
-  ami           = data.aws_ami.ubuntu.id
-  instance_type = "t3.micro"
+  ami                    = data.aws_ami.ubuntu.id
+  instance_type          = var.instance_type
+  subnet_id              = aws_subnet.public.id
+  vpc_security_group_ids = [aws_security_group.server.id]
+  key_name               = aws_key_pair.server.key_name
 
   tags = {
-    Name = "devsecops-server"
+    Name = "${var.project_name}-server"
   }
 }
 

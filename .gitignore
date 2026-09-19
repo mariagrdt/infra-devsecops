@@ -2,3 +2,5 @@
 *.tfstate.*
 .terraform/
 docs/
+*.pem
+terraform.tfvars
