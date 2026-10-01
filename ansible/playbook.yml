@@ -1,0 +1,64 @@
+- name: Configure devsecops server
+  hosts: web
+  become: yes
+
+  tasks:
+  - name: Create deploy user
+    user:
+      name: deploy
+      groups: sudo
+  
+  - name: Update apt cache
+    apt:
+      update_cache: yes
+  
+  - name: Install Docker and Docker Compose
+    apt:
+      name:
+        - docker.io
+        - docker-compose
+      state: present
+  
+  - name: Add deploy user to docker group
+    user:
+      name: deploy
+      groups: docker
+      append: yes
+  
+  - name: Install UFW
+    apt: 
+      name: ufw
+      state: present
+  
+  
+  - name: Allow SSH through UFW
+    community.general.ufw:
+      rule: allow
+      port: "22"
+      proto: tcp
+  
+  - name: Allow HTTP through UFW
+    community.general.ufw:
+      rule: allow
+      port: "80"
+      proto: tcp
+  
+  - name: Allow HTTPS through UFW
+    community.general.ufw:
+      rule: allow
+      port: "443"
+      proto: tcp
+
+
+  - name: Enable UFW
+    community.general.ufw:
+      state: enabled
+  
+
+  - name: Copy docker-compose.yml to server
+    copy:
+      src: ../docker/docker-compose.yml
+      dest: /home/deploy/docker-compose.yml
+  
+  - name: Start Nginx with Docker Compose
+    command: docker-compose -f /home/deploy/docker-compose.yml up -d

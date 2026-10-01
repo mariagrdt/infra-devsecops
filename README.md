@@ -4,57 +4,76 @@ A hands-on DevSecOps portfolio project: provisioning a cloud server with Terrafo
 
 ## Project Structure
 
+The project is split by tool, matching the three stages of the pipeline (provision → configure → run):
+
+```
+infra-devsecops/
+├── terraform/     # Infrastructure provisioning
+├── ansible/       # Server configuration
+├── docker/        # Application / services layer
+└── docs/          # Personal notes (not part of the public portfolio narrative)
+```
+
 | File | Purpose |
 |---|---|
-| `main.tf` | Provider configuration, required providers, AMI lookup, the EC2 instance itself, and the `public_ip` output |
-| `variables.tf` | Input variables: `region`, `instance_type`, `project_name`, `my_ip` |
-| `vpc.tf` | Networking: VPC, public subnet, Internet Gateway, route table, and route table association |
-| `security_group.tf` | Firewall rules: SSH restricted to the operator's IP, HTTP/HTTPS open to everyone |
-| `ssh_key.tf` | Generates an RSA key pair, registers the public key with AWS, and saves the private key locally as a `.pem` file |
-| `terraform.tfvars` | Local, untracked file holding the real value of `my_ip` (see `terraform.tfvars.example`) |
+| `terraform/main.tf` | Provider configuration, required providers, AMI lookup, the EC2 instance itself, and the `public_ip` output |
+| `terraform/variables.tf` | Input variables: `region`, `instance_type`, `project_name`, `my_ip` |
+| `terraform/vpc.tf` | Networking: VPC, public subnet, Internet Gateway, route table, and route table association |
+| `terraform/security_group.tf` | Firewall rules: SSH restricted to the operator's IP, HTTP/HTTPS open to everyone |
+| `terraform/ssh_key.tf` | Generates an RSA key pair, registers the public key with AWS, and saves the private key locally as a `.pem` file |
+| `terraform/terraform.tfvars` | Local, untracked file holding the real value of `my_ip` (see `terraform.tfvars.example`) |
+| `ansible/playbook.yml` | Server hardening: creates the `deploy` user, installs Docker, configures UFW, deploys the app stack |
+| `ansible/inventory.ini` | Local, untracked file listing the target server and SSH connection details (see `inventory.ini.example`) |
+| `docker/docker-compose.yml` | Defines the containerized services (Nginx, and later Prometheus/Grafana) |
 
 ## Getting Started
 
 ### Prerequisites
 
 - [Terraform](https://developer.hashicorp.com/terraform/install) installed
+- [Ansible](https://docs.ansible.com/ansible/latest/installation_guide/index.html) installed
 - An AWS account with the AWS CLI configured (`aws configure`) using an IAM user with programmatic access
 - An SSH client (built into macOS/Linux; use WSL or PuTTY on Windows)
 
 ### Setup
 
 1. Clone this repository and move into it.
-2. Copy the example variables file and fill in your own public IP:
+2. Provision the infrastructure:
    ```bash
+   cd terraform
    cp terraform.tfvars.example terraform.tfvars
    curl -4 ifconfig.me   # prints your public IPv4 address
    ```
-   Edit `terraform.tfvars` so it reads `my_ip = "<your_ip>/32"`.
-3. Initialize Terraform (downloads the AWS, TLS, and Local providers):
+   Edit `terraform.tfvars` so it reads `my_ip = "<your_ip>/32"`, then:
    ```bash
    terraform init
-   ```
-4. Preview what will be created:
-   ```bash
    terraform plan
-   ```
-5. Create the infrastructure:
-   ```bash
    terraform apply
    ```
-   Type `yes` to confirm. This provisions the VPC, subnet, security group, SSH key pair, and the EC2 instance (10 resources).
-6. Connect to the instance, using the `public_ip` printed in the apply output:
+   Type `yes` to confirm. This provisions the VPC, subnet, security group, SSH key pair, and the EC2 instance (10 resources). Note the `public_ip` printed at the end.
+3. Configure the server with Ansible:
    ```bash
-   ssh -i devsecops-key.pem ubuntu@<public_ip>
+   cd ../ansible
+   cp inventory.ini.example inventory.ini
+   ```
+   Edit `inventory.ini` with the `public_ip` from the previous step, then:
+   ```bash
+   ansible all -i inventory.ini -m ping     # sanity check
+   ansible-playbook -i inventory.ini playbook.yml
+   ```
+4. Connect to the instance directly if needed:
+   ```bash
+   ssh -i ../terraform/devsecops-key.pem ubuntu@<public_ip>
    ```
 
 ### Tearing down
 
 To avoid unnecessary AWS costs (this project targets the Free Tier), destroy the infrastructure when done working on it:
 ```bash
+cd terraform
 terraform destroy
 ```
-The Terraform code stays untouched — running `terraform apply` again fully recreates the environment.
+The code stays untouched — running `terraform apply` again fully recreates the environment (with a new `public_ip`, so `ansible/inventory.ini` needs updating accordingly).
 
 ## Step 1 — Architecture Choice
 
