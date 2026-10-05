@@ -5,3 +5,4 @@ docs/
 *.pem
 terraform.tfvars
 inventory.ini
+.env

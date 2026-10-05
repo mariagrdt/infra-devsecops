@@ -119,7 +119,7 @@ This project is meant to demonstrate DevSecOps practices end-to-end (infrastruct
   - [x] SSH key pair generation
   - [x] Wire the EC2 instance to the new VPC/subnet/SG/key in `main.tf`
   - [x] Verified: SSH connection to the instance works end to end
-- [ ] Step 2 — Ansible: server hardening and configuration
+- [x] Step 2 — Ansible: server hardening and configuration (deploy user, Docker, UFW, self-signed HTTPS with HTTP→HTTPS redirect)
 - [ ] Step 3 — Docker + monitoring (Nginx, Prometheus, Grafana)
 - [ ] Step 4 — CI/CD + Trivy security scanning
 - [ ] Step 5 — Simulated incident + post-mortem

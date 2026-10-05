@@ -80,6 +80,11 @@
     copy:
       src: ../docker/docker-compose.yml
       dest: /home/deploy/docker-compose.yml
+  
+  - name: Copy prometheus.yml to server
+    copy:
+      src: ../docker/prometheus.yml
+      dest: /home/deploy/prometheus.yml
 
  # --- 5. Nginx deployment ---
   # Copy the config files, then start the containers
@@ -89,5 +94,11 @@
       src: ../docker/nginx.conf
       dest: /home/deploy/nginx.conf
   
+  - name: Copy .env to server
+    copy:
+      src: ../docker/.env
+      dest: /home/deploy/.env
+      mode: "0600"
+
   - name: Start Nginx with Docker Compose
-    command: docker-compose -f /home/deploy/docker-compose.yml up -d
+    command: docker compose -f /home/deploy/docker-compose.yml up -d
