@@ -2,6 +2,10 @@
   hosts: web
   become: yes
 
+
+   # --- 1. Users ---
+  # Create a dedicated deploy user instead of using the default ubuntu account
+
   tasks:
   - name: Create deploy user
     user:
@@ -11,12 +15,15 @@
   - name: Update apt cache
     apt:
       update_cache: yes
+
+ # --- 2. Docker ---
+  # Install Docker and let deploy run it without sudo
   
   - name: Install Docker and Docker Compose
     apt:
       name:
         - docker.io
-        - docker-compose
+        - docker-compose-v2
       state: present
   
   - name: Add deploy user to docker group
@@ -24,7 +31,10 @@
       name: deploy
       groups: docker
       append: yes
-  
+
+  # --- 3. Firewall (UFW) ---
+  # Allow SSH/HTTP/HTTPS before enabling UFW, or we lock ourselves out
+
   - name: Install UFW
     apt: 
       name: ufw
@@ -53,12 +63,31 @@
   - name: Enable UFW
     community.general.ufw:
       state: enabled
+
+# --- 4. TLS certificate ---
+  # Self-signed certificate for HTTPS, generated only once (creates:)
   
+  - name: Generate self-signed TLS certificate
+    command: >
+      openssl req -x509 -nodes -days 365 -newkey rsa:2048
+      -keyout /home/deploy/nginx.key
+      -out /home/deploy/nginx.crt
+      -subj "/CN={{ ansible_host }}"
+    args:
+      creates: /home/deploy/nginx.crt
 
   - name: Copy docker-compose.yml to server
     copy:
       src: ../docker/docker-compose.yml
       dest: /home/deploy/docker-compose.yml
+
+ # --- 5. Nginx deployment ---
+  # Copy the config files, then start the containers
+  
+  - name: Copy nginx to server
+    copy: 
+      src: ../docker/nginx.conf
+      dest: /home/deploy/nginx.conf
   
   - name: Start Nginx with Docker Compose
     command: docker-compose -f /home/deploy/docker-compose.yml up -d
