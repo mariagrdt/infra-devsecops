@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+
+jobs:
+  terraform-checks:
+    runs-on: ubuntu-latest
+    steps:
+    # Copy GiHub repository on empty VM of runner
+      - name: Checkout code
+        uses: actions/checkout@v4
+    # Install terraform on this VM
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+    # Check that all .tf files have a good format (tab, spaces etc)
+      - name: Terraform fmt check
+        working-directory: terraform
+        run: terraform fmt -check
+    # Download Providers (AWS, TLS, Local) for Terraform for understanding types of ressources like aws_vps
+      - name: Terraform init
+        working-directory: terraform
+        run: terraform init -backend=false
+    # Global logical check of the code
+      - name: Terraform validate
+        working-directory: terraform
+        run: terraform validate
+    
+      - name: Tricy IaC scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with: 
+           scan-type: config
+           scan-ref: terraform
+           severity: HIGH, CRITICAL
+           exit-code: '1'
