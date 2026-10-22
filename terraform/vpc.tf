@@ -12,10 +12,10 @@ resource "aws_vpc" "main" {
 
 # Public subnet: instances launched here get assigned a public IP
 resource "aws_subnet" "public" {
-  vpc_id                  = aws_vpc.main.id
-  cidr_block              = "10.0.1.0/24"
-  availability_zone       = "${var.region}a"
-# trivy:ignore:AWS-0164 This is the public-facing web server by design, see README architecture section
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.0.1.0/24"
+  availability_zone = "${var.region}a"
+  # trivy:ignore:AWS-0164 This is the public-facing web server by design, see README architecture section
   map_public_ip_on_launch = true
 
   tags = {
