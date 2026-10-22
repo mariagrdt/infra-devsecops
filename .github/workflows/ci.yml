@@ -30,10 +30,10 @@ jobs:
         working-directory: terraform
         run: terraform validate
     
-      - name: Tricy IaC scan
+      - name: Trivy IaC scan
         uses: aquasecurity/trivy-action@0.36.0
         with: 
            scan-type: config
            scan-ref: terraform
-           severity: HIGH, CRITICAL
+           severity: HIGH,CRITICAL
            exit-code: '1'
