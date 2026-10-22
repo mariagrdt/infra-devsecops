@@ -30,7 +30,7 @@ jobs:
         working-directory: terraform
         run: terraform validate
     
-      - name: Tricy IaC scan
+      - name: Trivy IaC scan
         uses: aquasecurity/trivy-action@v0.36.0
         with: 
            scan-type: config

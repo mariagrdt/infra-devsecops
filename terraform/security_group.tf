@@ -24,6 +24,7 @@ resource "aws_security_group" "server" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  # trivy:ignore:AWS-0104 Outbound traffic is intentionally unrestricted so the instance can reach apt/Docker registries
   egress {
     from_port   = 0
     to_port     = 0

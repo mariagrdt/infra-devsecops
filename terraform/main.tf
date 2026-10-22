@@ -42,6 +42,16 @@ resource "aws_instance" "server" {
   tags = {
     Name = "${var.project_name}-server"
   }
+
+  metadata_options {
+    http_tokens = "required"
+  }
+
+  root_block_device {
+    encrypted = true
+  }
+
+
 }
 
 # Affiche l'IP publique après création
