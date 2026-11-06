@@ -44,7 +44,7 @@ resource "aws_instance" "server" {
     Name = "${var.project_name}-server"
   }
 
-# Require a token before answering metadata requests (protects against SSRF)
+  # Require a token before answering metadata requests (protects against SSRF)
   metadata_options {
     http_tokens = "required"
   }
