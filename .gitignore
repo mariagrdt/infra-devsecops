@@ -6,3 +6,4 @@ docs/
 terraform.tfvars
 inventory.ini
 .env
+.DS_Store

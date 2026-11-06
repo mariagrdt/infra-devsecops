@@ -1,3 +1,4 @@
+# Providers required by this project: AWS for the infrastructure, TLS for the SSH key, Local for writing files to disk
 terraform {
   required_providers {
     aws = {
@@ -43,6 +44,7 @@ resource "aws_instance" "server" {
     Name = "${var.project_name}-server"
   }
 
+# Require a token before answering metadata requests (protects against SSRF)
   metadata_options {
     http_tokens = "required"
   }
